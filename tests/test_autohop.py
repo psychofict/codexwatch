@@ -126,6 +126,7 @@ def test_dry_run_never_hops(world):
     assert json.loads(log[-1])["target"] == "b"
 
 
+@pytest.mark.skipif(os.name == "nt", reason="codexhop, and so autohop, runs on Linux and macOS only")
 def test_apply_calls_codexhop(world):
     s, calls = world
     d = autohop.run_once(s, apply=True, scan=False)
