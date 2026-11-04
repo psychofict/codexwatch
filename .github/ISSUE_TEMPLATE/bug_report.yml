@@ -1,0 +1,49 @@
+name: Bug report
+description: A number looks wrong, or something didn't work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste an `auth.json`, a token, or a whole session log.** Session logs hold
+        your prompts and code. `codexwatch doctor` prints only counts and paths, so it is
+        safe to paste; edit out a folder name if you would rather not share it.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, what you got. For a wrong number, say which view and what you think it should be.
+      placeholder: |
+        $ codexwatch daily -p 7d
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `codexwatch doctor`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: lines
+    attributes:
+      label: Log lines, if the problem is in the counting (optional)
+      description: |
+        A few lines of `type` token_usage_record, token_count or turn_context from a rollout file,
+        with prompts, paths and ids replaced. They let us add a test for your Codex version.
+      render: json
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: macOS 15.4 / Ubuntu 24.04 / Windows 11
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: python3 and Codex versions
+      placeholder: python 3.12.3, codex-cli 0.166.0
+    validations:
+      required: true

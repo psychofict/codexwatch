@@ -1,0 +1,13 @@
+# Runs `codexwatch autohop --apply` once; the timer beside it repeats it.
+# Install (Linux, systemd user session):
+#   cp extras/systemd/codexwatch-autohop.* ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now codexwatch-autohop.timer
+# Stop it at any time with `touch "$(codexwatch config path)/autohop.off"`.
+[Unit]
+Description=codexwatch autohop: switch codexhop accounts before one runs out
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env codexwatch autohop --apply --no-color
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin

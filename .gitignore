@@ -1,0 +1,19 @@
+# Never let a login or someone's usage history into the repo.
+auth.json
+history.db*
+*.token
+codexwatch-card.svg
+codexwatch-card.png
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.playwright-cli/
+build/
+dist/
+*.egg-info/
+
+# Local review stamps and design-checker settings.
+.show-check.json
+.impeccable/

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<title>codexwatch</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23181818'/%3E%3Cpath d='M6.3 17.7A8 8 0 1 1 17.7 17.7' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M12 12l4.6-4.6' stroke='%23da291c' stroke-width='2.4' stroke-linecap='square'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script nonce="__NONCE__">
+  // Apply the saved theme before first paint, so the page never flashes.
+  try { const t = localStorage.getItem("codexwatch-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  window.CODEXWATCH = { token: "__CODEXWATCH_TOKEN__", version: "__VERSION__" };
+</script>
+</head>
+<body>
+<a class="skip" href="#app">Skip to the dashboard</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="codexwatch home">
+      <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.3 17.7A8 8 0 1 1 17.7 17.7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12l4.6-4.6" stroke="#da291c" stroke-width="2.4" stroke-linecap="square"/></svg>
+      <b translate="no">codexwatch</b>
+    </a>
+    <div class="who" id="who"><span class="dot"></span><span>Reading your Codex logs…</span></div>
+    <div class="spacer"></div>
+    <div class="tabs" role="group" aria-label="Period" id="tabs">
+      <button data-p="today">Today</button>
+      <button data-p="7d">7 days</button>
+      <button data-p="30d" aria-pressed="true">30 days</button>
+      <button data-p="month">Month</button>
+      <button data-p="all">All</button>
+    </div>
+    <button class="iconbtn" id="theme" title="Theme: system" aria-label="Switch theme">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11A5.5 5.5 0 0 0 8 2.5z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="app" tabindex="-1">
+  <div class="wrap empty" id="loading"><h1>Reading your logs…</h1><p>The first scan reads every Codex session on this machine. Later ones read only what is new.</p></div>
+</main>
+
+<div class="tip" id="tip" role="status"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<dialog id="share" aria-labelledby="share-title">
+  <div class="in">
+    <div class="row">
+      <div><div class="label">Share card</div><h2 id="share-title" style="margin:4px 0 0;font-weight:500;letter-spacing:-.02em">Your Codex, on one card</h2></div>
+      <button class="iconbtn" id="share-close" aria-label="Close"><svg viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.3"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+    </div>
+    <div id="cardslot"></div>
+    <div class="row">
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <label><input type="checkbox" id="card-projects"> Show project names</label>
+        <label><input type="checkbox" id="card-light"> Light card</label>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn small ghost" id="dl-svg">SVG <span class="ic">↓</span></button>
+        <button class="btn small primary" id="dl-png">PNG <span class="ic">↓</span></button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0;font-size:12px">Project names stay off the card unless you tick the box. Nothing leaves this machine until you post the file yourself.</p>
+  </div>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

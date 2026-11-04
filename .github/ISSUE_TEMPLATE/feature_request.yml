@@ -1,0 +1,28 @@
+name: Feature request
+description: Something you would like codexwatch to show or do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        codexwatch stays on the Python standard library and reads only local logs, so the
+        useful question is what you are trying to find out, not which flag to add.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to find out or do?
+      description: The question about your usage you can't answer today.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What do you do now?
+      description: Any workaround, and what it costs you.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where would you use it?
+      options: [Terminal, Dashboard, Menu bar or tray, MCP / an agent, Share card, Somewhere else]
+    validations:
+      required: true
