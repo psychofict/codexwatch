@@ -102,9 +102,9 @@ codex mcp add codexwatch -- codexwatch mcp     # OpenAI Codex
 claude mcp add codexwatch -- codexwatch mcp    # Claude Code
 ```
 
-Then ask "how much of my 5-hour window is left?" or "what did this week cost?".
+Then ask "how much of my 5-hour window is left?" or "what did this week cost?". The tools are `usage_summary`, `plan_limits`, `quota_forensics`, `sessions`, `daily` and `budget_status`. The server is in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.psychofict/codexwatch`.
 
-<!-- mcp-name: io.github.psychofict/codexwatch --> The tools are `usage_summary`, `plan_limits`, `quota_forensics`, `sessions`, `daily` and `budget_status`.
+<!-- mcp-name: io.github.psychofict/codexwatch -->
 
 ## Several ChatGPT accounts
 
