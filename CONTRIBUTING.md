@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping. codexwatch has no dependencies beyond the Python standard library, and should stay that way; `gi` for the Linux tray is the one optional import.
+Thanks for helping. codexwatch (`codexwatch-cli` on PyPI) has no dependencies beyond the Python standard library, and should stay that way; `gi` for the Linux tray is the one optional import.
 
 ## Run it from a clone
 

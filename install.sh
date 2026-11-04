@@ -13,7 +13,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$HERE"
-[ -f "$HERE/pyproject.toml" ] || SRC="git+https://github.com/psychofict/codexwatch"
+[ -f "$HERE/pyproject.toml" ] || SRC="codexwatch-cli"
 AUTOSTART="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/codexwatch-tray.desktop"
 APPS="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 ICONS="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor"
@@ -40,9 +40,12 @@ swiftbar_dir() {
 
 if [ "$uninstall" = 1 ]; then
   pkill -f "codexwatch tray" 2>/dev/null || true
-  if has pipx && pipx list 2>/dev/null | grep -q codexwatch; then pipx uninstall codexwatch; fi
-  if has uv && uv tool list 2>/dev/null | grep -q codexwatch; then uv tool uninstall codexwatch; fi
-  python3 -m pip uninstall -y codexwatch >/dev/null 2>&1 || true
+  # The package is codexwatch-cli on PyPI; early clones installed it as codexwatch.
+  for pkg in codexwatch-cli codexwatch; do
+    if has pipx && pipx list --short 2>/dev/null | grep -q "^$pkg "; then pipx uninstall "$pkg"; fi
+    if has uv && uv tool list 2>/dev/null | grep -q "^$pkg "; then uv tool uninstall "$pkg"; fi
+    python3 -m pip uninstall -y "$pkg" >/dev/null 2>&1 || true
+  done
   rm -f "$AUTOSTART" "$APPS/codexwatch.desktop" "$DESKTOP_DIR/codexwatch.desktop" "$ICONS/scalable/apps/codexwatch.svg"
   d="$(swiftbar_dir)"; [ -n "$d" ] && rm -f "$d/codexwatch.30s.sh"
   say "codexwatch removed. Your history is kept; delete its folder yourself for a clean wipe."

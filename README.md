@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/codexwatch/"><img src="https://img.shields.io/pypi/v/codexwatch?color=da291c" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/codexwatch-cli/"><img src="https://img.shields.io/pypi/v/codexwatch-cli?color=da291c" alt="PyPI version"></a>
   <a href="https://github.com/psychofict/codexwatch/actions/workflows/ci.yml"><img src="https://github.com/psychofict/codexwatch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/psychofict/codexwatch/blob/main/LICENSE"><img src="https://img.shields.io/badge/licence-MIT-181818" alt="MIT licence"></a>
   <img src="https://img.shields.io/badge/python-3.9%2B-181818" alt="Python 3.9 or newer">
@@ -13,7 +13,7 @@
 codexwatch shows where your OpenAI Codex usage goes: tokens and their API-equivalent cost per day, project, model, session and tool, your plan's 5-hour and weekly limits as they stand now, and what each percent of those limits cost you. By default it reads only the session logs Codex already writes on your machine, never opens your login, and makes no network request; fetching prices and refreshing codexhop accounts are things you ask for.
 
 ```bash
-pipx install codexwatch      # or: uvx codexwatch, or pip install --user codexwatch
+pipx install codexwatch-cli  # or: pip install --user codexwatch-cli
 codexwatch                   # the overview in your terminal
 codexwatch dashboard         # the web dashboard
 ```
@@ -203,6 +203,8 @@ codexwatch reads `~/.codex/sessions` (and `archived_sessions`) and writes only t
 Python 3.9 or newer; no packages beyond the standard library.
 
 ## FAQ
+
+**Why is the package called codexwatch-cli?** PyPI treats `codexwatch` as the same name as an unrelated project called `codex-watch`, so the package carries a suffix. The command is `codexwatch`. To run it once without installing: `uvx --from codexwatch-cli codexwatch`.
 
 **Why do my dollar figures differ from another tool's?** Most often because that tool counted forked sessions, subagents or repeated events twice, priced fast mode at the Standard rate, or treated a model with no price as $0. `codexwatch doctor` lists unpriced models, and `export` gives you every response to check against.
 

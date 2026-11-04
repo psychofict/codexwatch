@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codexwatch"
+name = "codexwatch-cli"
 dynamic = ["version"]
 description = "See where your OpenAI Codex tokens, dollars and plan limits go: exact per-response accounting, live 5-hour and weekly limits from your own logs, quota forensics, a web dashboard, status bars, a tray, an MCP server and a share card. No dependencies, no login."
 readme = "README.md"

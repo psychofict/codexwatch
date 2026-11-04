@@ -2,7 +2,7 @@
 
 ## 1.0.0
 
-The first release.
+The first release, on PyPI as `codexwatch-cli` (the command is `codexwatch`).
 
 - Reads Codex rollout logs into a local history database, counting each model response once by its response id, so forks, subagents, repeated events and synced copies never add tokens twice. Logs from before per-response records are read from their running totals.
 - API-equivalent cost from OpenAI's published prices as of 2026-11-04, with long-context and Fast-tier pricing; models with no price are reported as unpriced rather than $0. Optional LiteLLM price list and your own overrides.

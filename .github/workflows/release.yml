@@ -53,7 +53,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: pypi
-      url: https://pypi.org/p/codexwatch
+      url: https://pypi.org/p/codexwatch-cli
     permissions:
       contents: read
       id-token: write   # lets PyPI check this run is the workflow it trusts; no token is stored
@@ -63,7 +63,7 @@ jobs:
           name: dist
           path: dist/
       # Trusted publishing: PyPI trusts this repository, this workflow file and the
-      # `pypi` environment (set up at pypi.org as a pending publisher for `codexwatch`),
+      # `pypi` environment (set up at pypi.org as a pending publisher for `codexwatch-cli`),
       # so there is no API token to store or leak.
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
