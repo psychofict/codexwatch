@@ -102,7 +102,9 @@ codex mcp add codexwatch -- codexwatch mcp     # OpenAI Codex
 claude mcp add codexwatch -- codexwatch mcp    # Claude Code
 ```
 
-Then ask "how much of my 5-hour window is left?" or "what did this week cost?". The tools are `usage_summary`, `plan_limits`, `quota_forensics`, `sessions`, `daily` and `budget_status`.
+Then ask "how much of my 5-hour window is left?" or "what did this week cost?".
+
+<!-- mcp-name: io.github.psychofict/codexwatch --> The tools are `usage_summary`, `plan_limits`, `quota_forensics`, `sessions`, `daily` and `budget_status`.
 
 ## Several ChatGPT accounts
 
@@ -204,7 +206,7 @@ Python 3.9 or newer; no packages beyond the standard library.
 
 ## FAQ
 
-**Why is the package called codexwatch-cli?** PyPI treats `codexwatch` as the same name as an unrelated project called `codex-watch`, so the package carries a suffix. The command is `codexwatch`. To run it once without installing: `uvx --from codexwatch-cli codexwatch`.
+**Why is the package called codexwatch-cli?** PyPI treats `codexwatch` as the same name as an unrelated project called `codex-watch`, so the package carries a suffix. The command is `codexwatch`, and `codexwatch-cli` works too. To run it once without installing: `uvx codexwatch-cli`.
 
 **Why do my dollar figures differ from another tool's?** Most often because that tool counted forked sessions, subagents or repeated events twice, priced fast mode at the Standard rate, or treated a model with no price as $0. `codexwatch doctor` lists unpriced models, and `export` gives you every response to check against.
 

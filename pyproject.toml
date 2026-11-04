@@ -48,6 +48,7 @@ Author = "https://ebenworks.co/"
 
 [project.scripts]
 codexwatch = "codexwatch.cli:console_main"
+codexwatch-cli = "codexwatch.cli:console_main"  # so `uvx codexwatch-cli` and MCP clients find it by the package name
 
 [tool.setuptools]
 packages = ["codexwatch"]

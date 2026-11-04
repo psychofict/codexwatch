@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- `codexwatch-cli` works as a command as well as `codexwatch`, so `uvx codexwatch-cli` runs it without installing anything, and MCP clients can start the server from the package name.
+- Published to the official MCP Registry as `io.github.psychofict/codexwatch`, with a `server.json` in the repository.
+
 ## 1.0.0
 
 The first release, on PyPI as `codexwatch-cli` (the command is `codexwatch`).
