@@ -1,4 +1,6 @@
-"""Hop codexhop accounts before the live one runs out. Opt-in, dry run by default.
+"""Move to another of your own codexhop accounts when the live one is nearly spent.
+
+Opt-in, dry run by default.
 
 `codexwatch autohop` looks at the live account's plan windows and, when it is
 nearly spent, picks another saved account with room and asks codexhop to
@@ -6,8 +8,7 @@ switch to it. Without --apply it only says what it would do. codexhop never
 switches by itself on purpose, so this is the one place that does, and only
 when you run it.
 
-The policy follows the autohop that switches Claude logins on the machine
-this was built on. Every number is a default you can change in the
+Every number is a default you can change in the
 `autohop` block of config.json:
 
   1. Stay on the live account (sticky) until it reaches five_hour_hop_at (92%)

@@ -563,7 +563,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--notify-pct", type=float, default=80)
     sp.add_argument("--id", type=int)
     sp = add("autohop", _lazy("autohop", "cmd_autohop"),
-             "hop codexhop accounts before one runs out (dry run unless --apply)", parents=(common,))
+             "move to another of your own codexhop accounts when the live one is nearly spent (dry run unless --apply)", parents=(common,))
     sp.add_argument("--apply", action="store_true", help="really hop; without it, only say what would happen")
     sp.add_argument("--watch", action="store_true", help="keep checking")
     sp.add_argument("-i", "--interval", type=float, default=180)

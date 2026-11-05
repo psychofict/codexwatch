@@ -110,7 +110,7 @@ Then ask "how much of my 5-hour window is left?" or "what did this week cost?". 
 
 [codexhop](https://github.com/psychofict/codexhop) keeps several ChatGPT logins for Codex and switches between them. When it is installed, codexwatch shows every account's latest reading and the one with the most room, names the account behind each plan window in the quota report, and `codexwatch limits --refresh` asks codexhop for fresh readings of all of them. codexwatch itself never opens a login file; it runs `codexhop` for anything that needs one.
 
-`codexwatch autohop` switches accounts before the live one runs out. It is off until you run it, and without `--apply` it only says what it would do:
+`codexwatch autohop` moves Codex to another of your saved accounts when the live one is nearly spent. It is for accounts that are yours, such as a personal plan and your own seat in a company workspace, never a login someone shared with you; each account keeps its own limits, and OpenAI's terms of use apply to each one. It is off until you run it, and without `--apply` it only says what it would do:
 
 ```text
 $ codexwatch autohop
@@ -163,7 +163,7 @@ Every report takes `-p/--period` (`today`, `7d`, `30d`, `week`, `month`, `year`,
 | `tray` | The Linux tray icon |
 | `budget` | `add`, `list`, `rm`, `check` |
 | `notify` | Send any due notification once |
-| `autohop` | Switch codexhop accounts before one runs out (dry run unless `--apply`) |
+| `autohop` | Move to another of your own codexhop accounts when the live one is nearly spent (dry run unless `--apply`) |
 | `mcp` | The MCP server |
 | `demo` | The dashboard on invented data; `--terminal` for the overview |
 | `export` | Every response as CSV or JSON |
