@@ -8,12 +8,12 @@
     "source": "github"
   },
   "websiteUrl": "https://github.com/psychofict/codexwatch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "codexwatch-cli",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

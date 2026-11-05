@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- The dashboard serves its own files with fixed content types instead of the system's table. On Windows that table can call `.js` plain text, which the browser then refuses to run.
+- The release is built with tools pinned by hash, and the Docker image pins its base image and installs nothing with pip.
+- SECURITY.md links the private report form.
+
 ## 1.0.1
 
 - `codexwatch-cli` works as a command as well as `codexwatch`, so `uvx codexwatch-cli` runs it without installing anything, and MCP clients can start the server from the package name.
