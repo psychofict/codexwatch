@@ -79,6 +79,14 @@ def test_static_files_cannot_escape_the_web_folder(running):
     assert code == 200 and headers["Content-Type"] == "font/woff2"
 
 
+def test_static_types_come_from_a_fixed_table(running):
+    # Not from the system's table, which on Windows can call .js text/plain.
+    code, _, headers = get(running + "/app.js")
+    assert code == 200 and headers["Content-Type"] == "text/javascript; charset=utf-8"
+    code, _, headers = get(running + "/style.css")
+    assert code == 200 and headers["Content-Type"] == "text/css; charset=utf-8"
+
+
 def test_card_svg(running):
     code, body, headers = get(running + "/api/card.svg?t=test-token")
     assert code == 200 and headers["Content-Type"] == "image/svg+xml"

@@ -22,4 +22,4 @@ The card shows no project or session names unless you ask for them with `--proje
 
 ## Reporting a problem
 
-Please report anything that could expose a log, a reading or a login privately, through GitHub's "Report a vulnerability" on this repository, rather than in a public issue. You will get a reply within a week.
+Please report anything that could expose a log, a reading or a login privately, through GitHub's [Report a vulnerability](https://github.com/psychofict/codexwatch/security/advisories/new) form on this repository, rather than in a public issue. You will get a reply within a week.

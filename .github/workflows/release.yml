@@ -31,8 +31,9 @@ jobs:
           ver="$(python -c 'import codexwatch; print(codexwatch.__version__)')"
           test "$tag" = "$ver" || { echo "tag $tag != __version__ $ver"; exit 1; }
 
-      - run: pip install build
-      - run: python -m build
+      # build and setuptools come pinned by hash, so the build is not left to fetch its own.
+      - run: pip install --require-hashes -r .github/requirements/build.txt
+      - run: python -m build --no-isolation
 
       - name: the wheel installs and runs
         run: |

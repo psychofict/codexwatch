@@ -12,7 +12,6 @@ neither read your usage nor hop your account.
 from __future__ import annotations
 
 import json
-import mimetypes
 import os
 import secrets
 import sys
@@ -27,6 +26,10 @@ from . import __version__, config, hop, limits, paths, periods, reports, snapsho
 from .store import open_store
 
 WEB = os.path.join(os.path.dirname(__file__), "web")
+# The file types the page is made of, fixed here rather than read from the
+# system: Windows can map .js to text/plain, which nosniff then refuses to run.
+TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
+         ".svg": "image/svg+xml", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8"}
 
 
 def dashboard_state(store, period: str = "30d", scan: bool = True) -> dict:
@@ -126,9 +129,9 @@ class Handler(BaseHTTPRequestHandler):
         full = os.path.realpath(os.path.join(WEB, rel))
         if not full.startswith(os.path.realpath(WEB) + os.sep) or not os.path.isfile(full):
             return self._send(404, b"not found", "text/plain")
-        ctype = mimetypes.guess_type(full)[0] or "application/octet-stream"
-        if full.endswith(".woff2"):
-            ctype = "font/woff2"
+        ctype = TYPES.get(os.path.splitext(full)[1])
+        if not ctype:
+            return self._send(404, b"not found", "text/plain")
         with open(full, "rb") as f:
             return self._send(200, f.read(), ctype)
 
