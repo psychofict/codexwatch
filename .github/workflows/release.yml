@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.9"
+          python-version: "3.13"
 
       - name: the tag and __version__ must agree
         if: startsWith(github.ref, 'refs/tags/v')
@@ -34,6 +34,12 @@ jobs:
       # build and setuptools come pinned by hash, so the build is not left to fetch its own.
       - run: pip install --require-hashes -r .github/requirements/build.txt
       - run: python -m build --no-isolation
+
+      # setuptools 84 needs Python 3.10, so the wheel is built on 3.13 and run on 3.9,
+      # the oldest Python the package supports.
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.9"
 
       - name: the wheel installs and runs
         run: |
