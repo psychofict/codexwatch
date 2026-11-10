@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- codexhop providers (Azure, Bedrock, any other endpoint) now show beside the accounts in the dashboard, tray, terminal views and MCP server. When codexhop has hopped to one, it is the live entry, as in `codexhop list`; before, codexwatch kept showing the ChatGPT login as live. A provider has no plan windows, so it is never offered as the account with room and autohop never hops to or from it. While one is live, the last plan reading is not shown: the tray label, the status bars and the terminal view show the provider's name and today's value, and the dashboard shows today's and the last 7 days' spend in place of the two plan gauges.
+
 ## 1.0.2
 
 - The dashboard serves its own files with fixed content types instead of the system's table. On Windows that table can call `.js` plain text, which the browser then refuses to run.

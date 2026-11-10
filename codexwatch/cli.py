@@ -133,8 +133,8 @@ def _print_limits(cur: list[dict], accts: list[dict], compact: bool = False) -> 
             print(fmt.dim(f"  {c['name'] or c['limit_id']}: last read {fmt.ago(c['read_at'])}"))
             continue
         plan = pricing.load().plans.get(c["plan"] or "", {}).get("name") or c["plan"] or "plan"
-        who = next((a["name"] for a in accts if a["active"]), None)
-        title = f"{c['name'] or plan}" + (f" · live account {who}" if who and c["limit_id"] == "codex" else "")
+        who = hop.live_phrase(next((a for a in accts if a["active"]), None))
+        title = f"{c['name'] or plan}" + (f" · {who}" if who and c["limit_id"] == "codex" else "")
         age = fmt.dim(f"read {fmt.ago(c['read_at'])}")
         print(fmt.label("limits") + "  " + fmt.bold(title) + "  " + age)
         for wdw in c["windows"]:
@@ -155,7 +155,7 @@ def _print_limits(cur: list[dict], accts: list[dict], compact: bool = False) -> 
         line = []
         for r in accts:
             s5 = r["short"]["pct"] if r["short"] else None
-            cell = f"{r['name']} {fmt.pct(s5)}"
+            cell = f"{r['name']} provider" if r.get("kind") == "provider" else f"{r['name']} {fmt.pct(s5)}"
             line.append(fmt.bold(cell) if r["active"] else fmt.grey(cell))
         print("  " + fmt.dim("accounts ") + "  ".join(line)
               + (fmt.dim("   most room: ") + fmt.red(nxt["name"]) if nxt else ""))
@@ -269,17 +269,24 @@ def cmd_limits(a) -> int:
         return 0
     _print_limits(cur, accts)
     if accts:
-        print()
-        print(fmt.label("codexhop accounts"))
         out = []
-        for r in accts:
+        for r in (x for x in accts if x.get("kind") != "provider"):
             sh, lg = r["short"], r["long"]
             out.append([("* " if r["active"] else "  ") + r["name"], r["plan"] or "-",
                         f"{fmt.pct(sh['pct'])} {fmt.dim('resets ' + fmt.clock(sh.get('resetsAt')))}" if sh else "-",
                         f"{fmt.pct(lg['pct'])} {fmt.dim('resets ' + fmt.clock(lg.get('resetsAt')))}" if lg else "-",
                         fmt.ago(r["fetched_at"])])
-        print(fmt.table(["account", "plan", "5 hours", "week", "read"], out, "lllll"))
-        if not a.refresh:
+        if out:
+            print()
+            print(fmt.label("codexhop accounts"))
+            print(fmt.table(["account", "plan", "5 hours", "week", "read"], out, "lllll"))
+        provs = [[("* " if r["active"] else "  ") + r["name"], r.get("model") or "-", r.get("host") or "-"]
+                 for r in accts if r.get("kind") == "provider"]
+        if provs:
+            print()
+            print(fmt.label("codexhop providers") + fmt.dim("  no plan limits; billed by the provider"))
+            print(fmt.table(["provider", "model", "host"], provs, "lll"))
+        if not a.refresh and out:
             print(fmt.dim(f"Readings are codexhop's last. `{PROG} limits --refresh` asks for new ones."))
     return 0
 

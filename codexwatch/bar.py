@@ -84,7 +84,9 @@ def _left(seconds) -> str:
 def parts(state: dict) -> dict:
     """The pieces every format is built from."""
     head = (state or {}).get("headline") or {}
-    short, long_ = head.get("short"), head.get("long")
+    on_provider = (state or {}).get("live_kind") == "provider"
+    # The newest plan reading belongs to a ChatGPT login; while a provider is live it says nothing about it.
+    short, long_ = (None, None) if on_provider else (head.get("short"), head.get("long"))
     settings = (state or {}).get("settings") or {}
     sp = short.get("pct") if short else None
     lp = long_.get("pct") if long_ else None
@@ -96,12 +98,19 @@ def parts(state: dict) -> dict:
         "short": short, "long": long_, "short_pct": sp, "long_pct": lp,
         "short_level": lv_s, "long_level": lv_l, "level": worst,
         "today_cost": today.get("cost") or 0.0, "today_tokens": today.get("total") or 0,
-        "has": short is not None or long_ is not None,
-        "plan": ((state or {}).get("plan") or {}).get("name"),
+        "has": short is not None or long_ is not None or on_provider,
+        "provider": on_provider,
+        "plan": None if on_provider else ((state or {}).get("plan") or {}).get("name"),
         "account": (state or {}).get("live_account"),
+        "account_kind": (state or {}).get("live_kind") or "account",
         "next": (state or {}).get("next_account"),
-        "read_at": head.get("read_at"),
+        "read_at": None if on_provider else head.get("read_at"),
     }
+
+
+def _live_name(p: dict) -> str | None:
+    """The live entry's name for a title; a provider says so."""
+    return p["account"] and (f"{p['account']} (provider)" if p["account_kind"] == "provider" else p["account"])
 
 
 def account_cells(state: dict, now: float | None = None) -> list[dict]:
@@ -121,10 +130,12 @@ def account_cells(state: dict, now: float | None = None) -> list[dict]:
         s = a.get("short") or {}
         pct = s.get("pct")
         fetched = a.get("fetched_at")
-        if a.get("active") and short and read_at and (not fetched or read_at > fetched):
+        kind = a.get("kind") or "account"
+        if kind == "account" and a.get("active") and short and read_at and (not fetched or read_at > fetched):
             pct, fetched = short.get("pct"), read_at
-        out.append({"name": a.get("name"), "active": bool(a.get("active")), "pct": pct,
-                    "age_s": (now - fetched) if fetched else None})
+        out.append({"name": a.get("name"), "kind": kind, "active": bool(a.get("active")), "pct": pct,
+                    "age_s": (now - fetched) if fetched else None,
+                    "note": " · ".join(x for x in (a.get("model"), a.get("host")) if x) or None})
     return out
 
 
@@ -137,6 +148,8 @@ def _age_note(age_s) -> str:
 def _segments(p: dict) -> list[tuple[str, str]]:
     """(text, level) pieces of the one-line form."""
     segs = []
+    if p["provider"]:  # no plan windows: the name and what it cost today
+        return [(p["account"], "ok"), (f"{_money(p['today_cost'])} today", "ok")]
     if p["short"]:
         segs.append((f"{_short_label(p['short'])} {p['short_pct']:.0f}%", p["short_level"]))
     if p["long"]:
@@ -204,9 +217,11 @@ def _tooltip(state: dict) -> str:
         return "No plan readings in the Codex logs yet."
     now = time.time()
     rows = []
-    title = " · ".join(x for x in (p["plan"], p["account"]) if x)
+    title = " · ".join(x for x in (p["plan"], _live_name(p)) if x)
     if title:
         rows.append(title)
+    if p["provider"]:
+        rows.append("No plan limits on a provider")
     for w in (p["short"], p["long"]):
         if not w:
             continue
@@ -263,7 +278,8 @@ def swiftbar(state: dict, sf_symbols: bool = True) -> str:
     head = " · ".join(t for t, _ in _segments(p)[:2]) if p["has"] else EMPTY
     out.append(_menu_safe(head) + (" | " + " ".join(params) if params else ""))
     out.append("---")
-    title = " · ".join(x for x in (p["plan"], p["account"] and f"live account {p['account']}") if x)
+    title = " · ".join(x for x in (p["plan"], p["account"] and (
+        f"live on {p['account']} (provider)" if p["account_kind"] == "provider" else f"live account {p['account']}")) if x)
     if title:
         out.append(f"{_menu_safe(title)} | color=#969696 size=12")
     if not p["has"]:
@@ -295,7 +311,9 @@ def swiftbar(state: dict, sf_symbols: bool = True) -> str:
         for a in accts:
             pct = f"{a['pct']:.0f}%" if a["pct"] is not None else "-"
             mark = "●" if a["active"] else "○"
-            out.append(f"{mark} {_menu_safe(a['name'])}  5h {pct}{_age_note(a['age_s'])} | font=Menlo size=12")
+            tail = f"provider{' · ' + a['note'] if a['note'] else ''}" if a["kind"] == "provider" \
+                else f"5h {pct}{_age_note(a['age_s'])}"
+            out.append(f"{mark} {_menu_safe(a['name'])}  {_menu_safe(tail)} | font=Menlo size=12")
         if p["next"]:
             out.append(f"Most room: {_menu_safe(p['next'])} | color=#da291c")
     out.append("---")
@@ -325,6 +343,7 @@ def headline_json(state: dict) -> str:
         "level": p["level"],
         "plan": p["plan"],
         "live_account": p["account"],
+        "live_kind": p["account_kind"],
         "next_account": p["next"],
         "today_cost": p["today_cost"],
         "today_tokens": p["today_tokens"],

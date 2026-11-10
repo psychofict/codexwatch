@@ -37,8 +37,9 @@ TOOLS = [
         "name": "plan_limits",
         "description": ("Where the ChatGPT plan's Codex limits stand now: each window's percent used, "
                         "reset time, burn rate per hour and projected time it fills, read from the newest "
-                        "session log. With codexhop installed, also every saved account's last reading and "
-                        "the account with the most 5-hour room."),
+                        "session log. With codexhop installed, also every saved account's last reading, the "
+                        "account with the most 5-hour room, and its providers (Azure and the like, kind "
+                        "'provider', no plan limits) with the live one marked."),
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {

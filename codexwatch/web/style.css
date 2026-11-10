@@ -127,6 +127,7 @@ h1, h2 { text-wrap: balance; }
   margin: 18px 0 26px; display: flex; align-items: flex-start; font-variant-numeric: tabular-nums;
 }
 .gauge .fig sup { font-size: .32em; font-weight: 500; letter-spacing: -0.02em; margin: .12em 0 0 .06em; color: var(--body); }
+.gauge.spend .fig { font-size: clamp(56px, 7.5vw, 104px); overflow-wrap: anywhere; }
 .gauge[data-level="warn"] .fig { color: var(--warn); }
 .gauge[data-level="alert"] .fig { color: var(--red); }
 .track { position: relative; height: 4px; background: var(--track); overflow: hidden; }

@@ -138,8 +138,14 @@ def menu_text(state: dict) -> dict:
 
     p = bar.parts(state or {})
     out = {"label": "–", "icon_pct": None, "level": "none", "title": "codexwatch", "windows": [],
-           "today": "Today: no usage yet", "accounts": [], "next": p["next"], "tooltip": bar._tooltip(state or {})}
-    if p["short"]:
+           "today": "Today: no usage yet", "accounts": [], "next": p["next"], "tooltip": bar._tooltip(state or {}),
+           "desc": "No current reading"}
+    if p["provider"]:
+        # A provider has no plan windows. The label is what today's usage is worth, over a plain ring.
+        out["label"] = bar._money(p["today_cost"])
+        out["windows"] = [f"On {p['account']}: no plan limits"]
+        out["desc"] = f"Live on {p['account']}, no plan limits; today's usage {out['label']}"
+    elif p["short"]:
         out["label"] = f"{p['short_pct']:.0f}%"
         out["icon_pct"] = p["short_pct"]
         out["level"] = p["short_level"]
@@ -147,7 +153,7 @@ def menu_text(state: dict) -> dict:
         out["label"] = f"{p['long_pct']:.0f}%"
         out["icon_pct"] = p["long_pct"]
         out["level"] = p["long_level"]
-    title = " · ".join(x for x in (p["plan"], p["account"]) if x)
+    title = " · ".join(x for x in (p["plan"], bar._live_name(p)) if x)
     if title:
         out["title"] = title
     import time
@@ -171,7 +177,11 @@ def menu_text(state: dict) -> dict:
         out["today"] = f"Today: {bar._money(today.get('cost'))} API value, {_tok(today.get('total'))} tokens"
     for a in bar.account_cells(state or {}, now):
         pct = f"{a['pct']:.0f}%" if a["pct"] is not None else "no reading"
-        out["accounts"].append(f"{'●' if a['active'] else '○'} {a['name']}: 5h {pct}{bar._age_note(a['age_s'])}")
+        dot = "●" if a["active"] else "○"
+        if a["kind"] == "provider":
+            out["accounts"].append(f"{dot} {a['name']}: provider{' · ' + a['note'] if a['note'] else ''}")
+        else:
+            out["accounts"].append(f"{dot} {a['name']}: 5h {pct}{bar._age_note(a['age_s'])}")
     return out
 
 
@@ -309,7 +319,7 @@ class Tray:
         if t["next"]:
             self.items["hop"].set_label(f"Hop to {t['next']} (most room)…")
         path = icon_path(t["icon_pct"], t["level"])
-        desc = f"Codex 5-hour window {t['label']} used" if t["icon_pct"] is not None else "No current reading"
+        desc = f"Codex 5-hour window {t['label']} used" if t["icon_pct"] is not None else t["desc"]
         if self.indicator is not None:
             self.indicator.set_icon_full(path, desc)
             self.indicator.set_label(t["label"], "100%")

@@ -6,6 +6,12 @@ reads the account names from file names, codexhop's `active` pointer and its
 usage cache (readings only, no tokens), and runs `codexhop` itself for the two
 things that need a login, a fresh reading of every account and a hop.
 
+codexhop also hops to a provider (Azure, Bedrock, any other endpoint), a Codex
+profile file `<name>.config.toml` that is not OpenAI's own service. A provider
+has no plan windows, so it is listed beside the accounts with kind "provider",
+and is never chosen as the account with room. When codexhop's `provider`
+pointer names one, that provider is the live entry, as in `codexhop list`.
+
 Which account a limit window belongs to is worked out from the window's reset
 time. Two accounts practically never share a reset time to the second, so a
 window in the logs whose reset matches one in codexhop's cache is that
@@ -17,13 +23,18 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
+import urllib.parse
 
 from . import paths
 
 MATCH_S = 120  # reset times this close are the same window
+PROFILE_SUFFIX = ".config.toml"
+_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_KEYLINE = re.compile(r"^(model_provider|model|base_url)\s*=\s*([\"'])(.*?)\2\s*(#.*)?$")
 
 
 def store_dir() -> str:
@@ -60,6 +71,79 @@ def run_sessions() -> bool:
         return False
 
 
+def _host(url: str) -> str | None:
+    """Only the host of an endpoint: a user name, password, path or query in it is dropped."""
+    try:
+        return urllib.parse.urlsplit(url).hostname
+    except ValueError:
+        return None
+
+
+def _profile_values(path: str) -> dict:
+    """model_provider, model and the host of the first base_url in a Codex profile.
+
+    Read line by line so Python 3.9 needs no TOML reader. A profile names the
+    variable a key lives in and never holds the key, and only the host of a URL
+    is kept.
+    """
+    out = {"model_provider": None, "model": None, "host": None}
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return out
+    top = True  # model_provider and model count only above the first [table]
+    for line in lines:
+        s = line.strip()
+        if s.startswith("["):
+            top = False
+            continue
+        m = _KEYLINE.match(s)
+        if not m:
+            continue
+        key, val = m.group(1), m.group(3)
+        if key == "base_url":
+            out["host"] = out["host"] or _host(val)
+        elif top:
+            out[key] = val
+    return out
+
+
+def providers() -> list[dict]:
+    """Profiles in the Codex home that point Codex somewhere other than OpenAI, as codexhop lists them."""
+    home = paths.codex_home()
+    try:
+        files = sorted(os.listdir(home))
+    except OSError:
+        return []
+    out = []
+    for f in files:
+        name = f[: -len(PROFILE_SUFFIX)]
+        if not f.endswith(PROFILE_SUFFIX) or not _NAME.match(name):
+            continue
+        v = _profile_values(os.path.join(home, f))
+        if v["model_provider"] not in (None, "openai"):
+            out.append({"name": name, "provider": v["model_provider"], "model": v["model"], "host": v["host"]})
+    return out
+
+
+def provider_active(provs: list[dict] | None = None) -> str | None:
+    """The provider codexhop has hopped to, if any. A pointer to a profile that is gone reads as none."""
+    try:
+        with open(os.path.join(store_dir(), "provider"), encoding="utf-8") as f:
+            name = f.read().strip()
+    except OSError:
+        return None
+    return name if name and any(p["name"] == name for p in (providers() if provs is None else provs)) else None
+
+
+def live_phrase(row: dict | None) -> str | None:
+    """How a surface says which entry is live."""
+    if not row:
+        return None
+    return f"live on {row['name']} (provider)" if row.get("kind") == "provider" else f"live account {row['name']}"
+
+
 def usage_cache() -> dict:
     try:
         with open(os.path.join(store_dir(), "usage.json"), encoding="utf-8") as f:
@@ -78,12 +162,18 @@ def _win_now(win: dict | None, now: float) -> dict | None:
 
 
 def accounts_view(now: float | None = None) -> list[dict]:
-    """Every saved account with its newest reading, live one first."""
+    """Every saved account, then every provider, each with its newest reading; the live entry first.
+
+    Rows have kind "account" or "provider". A provider has no plan windows, so
+    its readings are empty and it carries its model and host instead.
+    """
     now = now or time.time()
     names = accounts()
-    if not names:
+    provs = providers() if installed() else []
+    if not names and not provs:
         return []
     cur = active()
+    hopped = provider_active(provs)
     cache = usage_cache()
     rows = []
     for n in names:
@@ -91,7 +181,8 @@ def accounts_view(now: float | None = None) -> list[dict]:
         use = entry.get("usage") or {}
         rows.append({
             "name": n,
-            "active": n == cur,
+            "kind": "account",
+            "active": n == cur and not hopped,
             "plan": use.get("plan"),
             "short": _win_now(use.get("short"), now),
             "long": _win_now(use.get("long"), now),
@@ -100,7 +191,13 @@ def accounts_view(now: float | None = None) -> list[dict]:
             "age_s": (now - entry["fetchedAt"]) if entry.get("fetchedAt") else None,
             "throttled_until": entry.get("throttledUntil"),
         })
-    rows.sort(key=lambda r: (not r["active"], r["name"]))
+    for p in provs:
+        rows.append({
+            "name": p["name"], "kind": "provider", "active": p["name"] == hopped, "plan": None,
+            "short": None, "long": None, "limit_reached": False, "fetched_at": None, "age_s": None,
+            "throttled_until": None, "model": p["model"], "provider": p["provider"], "host": p["host"],
+        })
+    rows.sort(key=lambda r: (not r["active"], r["kind"] == "provider", r["name"]))
     return rows
 
 
@@ -108,7 +205,7 @@ def best_next(rows: list[dict], full_pct: float = 95.0) -> dict | None:
     """The other account with the most 5-hour room, chosen the way `codexhop next` does."""
     room = []
     for r in rows:
-        if r["active"]:
+        if r["active"] or r.get("kind") == "provider":
             continue
         s, w = r.get("short"), r.get("long")
         if w and w.get("pct", 0) >= 100:

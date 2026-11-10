@@ -124,7 +124,9 @@
     const who = $("#who");
     const plan = st.plan && st.plan.name;
     who.replaceChildren(h("span", { class: "dot" }), h("span", null,
-      [st.live_account ? `Live: ${st.live_account}` : null, plan, `read ${ago(st.headline.read_at)}`].filter(Boolean).join(" · ")));
+      (st.live_kind === "provider"
+        ? [`Live on ${st.live_account} (provider)`, "no plan limits"]
+        : [st.live_account ? `Live: ${st.live_account}` : null, plan, `read ${ago(st.headline.read_at)}`]).filter(Boolean).join(" · ")));
     const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.key : null;
     const nodes = [h("h1", { class: "sr" }, "codexwatch dashboard"), hero(st), livery(st), totals(st), split(st), quota(st), sessions(st), trio(st), footer(st)];
     app.replaceChildren(...nodes.filter(Boolean));
@@ -164,17 +166,31 @@
       h("div", { class: "facts" }, facts));
   }
 
+  // What a provider has cost in a period. A provider has no plan windows, so money stands where the gauges would.
+  function spend(name, p) {
+    p = p || {};
+    return h("div", { class: "gauge spend rise", "data-level": "ok" },
+      h("div", { class: "head" }, h("span", { class: "label" }, name)),
+      h("div", { class: "fig", "aria-label": `${name} ${money(p.cost)}` }, money(p.cost)),
+      h("div", { class: "facts" }, h("div", null, h("span", { class: "label" }, "Tokens"), h("b", null, tok(p.total)),
+        h("small", null, `${(p.requests || 0).toLocaleString()} requests`))));
+  }
+
   function hero(st) {
+    const onProvider = st.live_kind === "provider";
+    const per = st.periods || {};
     const hd = st.headline;
     const sh = hd.short, lg = hd.long;
     const nm = (w, d) => (w ? (w.label === "5h" ? "5-hour window" : w.label === "week" ? "Weekly window" : `${w.label} window`) : d);
-    const pills = [h("span", { class: "label" }, "Plan limits")];
-    if (st.plan && st.plan.name) pills.push(h("span", { class: "pill" }, st.plan.name));
-    if (st.live_account) pills.push(h("span", { class: "pill live" }, st.live_account));
-    pills.push(h("span", { class: "muted", style: "font-size:12px" }, hd.read_at ? `From the logs, read ${ago(hd.read_at)}` : "No readings yet"));
+    const pills = [h("span", { class: "label" }, onProvider ? "Provider spend" : "Plan limits")];
+    if (!onProvider && st.plan && st.plan.name) pills.push(h("span", { class: "pill" }, st.plan.name));
+    if (st.live_account) pills.push(h("span", { class: "pill live" }, st.live_kind === "provider" ? `${st.live_account} · provider` : st.live_account));
+    pills.push(h("span", { class: "muted", style: "font-size:12px" }, onProvider
+      ? "No plan limits; the provider bills this. API-equivalent value from the logs"
+      : hd.read_at ? `From the logs, read ${ago(hd.read_at)}` : "No readings yet"));
 
     const minor = [];
-    for (const lim of st.limits || []) {
+    for (const lim of onProvider ? [] : st.limits || []) {
       // Other limits (a model's own cap) only while they are as fresh as the main one.
       if (lim.limit_id === "codex" || (hd.read_at && lim.read_at < hd.read_at - 6 * 3600)) continue;
       for (const w of lim.windows) {
@@ -183,6 +199,13 @@
       }
     }
     const accts = (st.accounts || []).map((a) => {
+      if (a.kind === "provider") {
+        // A provider (Azure, Bedrock, any endpoint) has no plan windows: show what it runs and where.
+        return h("div", { class: "acct" + (a.active ? " on" : ""), title: "A provider: no plan limits, billed by the provider" },
+          h("div", { class: "n" }, h("span", null, a.name), h("em", null, a.active ? "live" : "provider")),
+          h("div", { class: "bars" }, h("small", null, a.model || a.provider || "")),
+          h("small", null, a.host || "no plan limits"));
+      }
       const best = st.next_account === a.name;
       const bar = (lbl, w) => h("div", null, h("span", null, lbl), track(w ? w.pct : 0, "", w ? level(w.pct) : null), h("span", { style: "text-align:right" }, w ? pct(w.pct) : "–"));
       return h("div", { class: "acct" + (a.active ? " on" : "") + (best ? " best" : ""), title: a.fetched_at ? `read ${ago(a.fetched_at)}` : "no reading" },
@@ -193,14 +216,16 @@
     const actions = [];
     if (st.meta.codexhop && accts.length) {
       actions.push(h("button", { class: "btn small ghost", "data-key": "read-accounts", onclick: refreshAccounts }, "Read every account", arrow()));
-      const live = sh ? sh.pct : 0;
+      const live = !onProvider && sh ? sh.pct : 0;
       if (st.next_account && level(live) !== "ok") {
         actions.push(h("button", { class: "btn small primary", "data-key": "hop", onclick: () => hopTo(st.next_account) }, `Hop to ${st.next_account}`, arrow()));
       }
     }
     return h("section", { class: "hero" }, h("div", { class: "wrap" },
       h("div", { class: "eyebrow" }, pills),
-      h("div", { class: "gauges" }, gauge(nm(sh, "5-hour window"), sh), gauge(nm(lg, "Weekly window"), lg)),
+      h("div", { class: "gauges" }, ...(onProvider
+        ? [spend("Today", per.today), spend("Last 7 days", per["7d"])]
+        : [gauge(nm(sh, "5-hour window"), sh), gauge(nm(lg, "Weekly window"), lg)])),
       minor.length ? h("div", { class: "minor" }, minor) : null,
       accts.length ? h("div", { class: "accounts rise" }, accts, h("div", { style: "display:flex;flex-direction:column;gap:10px;justify-content:center" }, actions)) : null));
   }

@@ -44,7 +44,7 @@ def headline(cur: list[dict]) -> dict:
 def overlay_live(accts: list[dict], head: dict) -> None:
     """The live account's tile shows the logs' reading when it is newer than codexhop's."""
     live = next((a for a in accts if a["active"]), None)
-    if not live or not head.get("read_at") or (live.get("fetched_at") or 0) >= head["read_at"]:
+    if not live or live.get("kind") == "provider" or not head.get("read_at") or (live.get("fetched_at") or 0) >= head["read_at"]:
         return
     for key, w in (("short", head.get("short")), ("long", head.get("long"))):
         if w:
@@ -67,6 +67,7 @@ def state(store, scan: bool = True, days: int = 30) -> dict:
     out = {
         "generated_at": now,
         "live_account": next((a["name"] for a in accts if a["active"]), None),
+        "live_kind": next((a.get("kind") for a in accts if a["active"]), None),
         "plan": plan_info(head["plan"]),
         "headline": head,
         "limits": cur,

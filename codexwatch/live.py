@@ -12,7 +12,7 @@ import os
 import sys
 import time
 
-from . import fmt, reports, snapshot
+from . import fmt, hop, reports, snapshot
 
 ENTER = "\033[?1049h\033[?25l"
 LEAVE = "\033[?25h\033[?1049l"
@@ -30,20 +30,25 @@ def frame(state: dict, session: dict | None, width: int, interval: float | None 
     settings = state.get("settings") or {}
     warn, alert = float(settings.get("warn_pct") or 70), float(settings.get("alert_pct") or 90)
     head = state.get("headline") or {}
-    plan = (state.get("plan") or {}).get("name")
-    acct = state.get("live_account")
+    on_provider = state.get("live_kind") == "provider"
+    plan = None if on_provider else (state.get("plan") or {}).get("name")
+    acct = hop.live_phrase(next((a for a in state.get("accounts") or [] if a.get("active")), None))
     now = time.time()
     lines = []
 
-    right = " · ".join(x for x in (plan, acct and f"live account {acct}",
-                                   head.get("read_at") and f"read {fmt.ago(head['read_at'])}") if x)
+    right = " · ".join(x for x in (plan, acct,
+                                   head.get("read_at") and not on_provider and f"read {fmt.ago(head['read_at'])}") if x)
     left = fmt.red("CODEXWATCH", bold=True) + fmt.dim("  live")
     gap = max(2, width - fmt.visible_len(left) - len(right))
     lines.append(left + " " * gap + fmt.grey(right))
     lines.append(fmt.dim("─" * width))
 
-    wins = [w for w in (head.get("short"), head.get("long")) if w]
-    if not wins:
+    wins = [] if on_provider else [w for w in (head.get("short"), head.get("long")) if w]
+    if on_provider:
+        lines.append("")
+        lines.append(fmt.label("provider"))
+        lines.append(fmt.grey("No plan limits here. The provider bills what you use; today's value is below."))
+    elif not wins:
         lines.append("")
         lines.append(fmt.grey("No plan readings in the Codex logs yet. They appear after your first Codex request."))
     bar_w = max(10, width - 16)
@@ -108,7 +113,8 @@ def frame(state: dict, session: dict | None, width: int, interval: float | None 
         lines.append("")
         cells = []
         for a in accts:
-            cell = f"{'●' if a['active'] else '○'} {a['name']} {fmt.pct(a['pct'])}{bar._age_note(a['age_s'])}"
+            cell = (f"{'●' if a['active'] else '○'} {a['name']} provider" if a["kind"] == "provider"
+                    else f"{'●' if a['active'] else '○'} {a['name']} {fmt.pct(a['pct'])}{bar._age_note(a['age_s'])}")
             cells.append(fmt.bold(cell) if a["active"] else fmt.grey(cell))
         nxt = state.get("next_account")
         lines.append(fmt.label("accounts") + "  " + "   ".join(cells)

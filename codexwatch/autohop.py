@@ -68,18 +68,21 @@ def decide(readings: list[dict], now: float, cfg: dict | None = None, last_hop_t
            fresh: set | None = None) -> dict:
     """What to do now. Pure: no files, no network.
 
-    readings are hop.accounts_view() rows: name, active, short, long,
+    readings are hop.accounts_view() rows: name, kind, active, short, long,
     limit_reached, age_s. Returns {action: stay|hop|wait, target, why, ...}.
     """
     cfg = {**DEFAULTS, **(cfg or {})}
     fresh = fresh or set()
     allow = cfg.get("accounts")
-    pool = [r for r in readings if not allow or r["name"] in allow]
+    pool = [r for r in readings if r.get("kind") != "provider" and (not allow or r["name"] in allow)]
     live = next((r for r in readings if r.get("active")), None)
     out = {"action": "stay", "target": None, "live": live["name"] if live else None, "why": "", "candidates": []}
 
     if live is None:
         out.update(action="wait", why="codexhop has no live account")
+        return out
+    if live.get("kind") == "provider":
+        out["why"] = f"the live entry {live['name']} is a provider, not a ChatGPT login, so it is left alone"
         return out
     if allow and live["name"] not in allow:
         out["why"] = f"the live account {live['name']} is not on the autohop list, so it is left alone"
@@ -162,7 +165,7 @@ def readings(store, now: float | None = None) -> list[dict]:
     now = now or time.time()
     rows = hop.accounts_view(now)
     live = next((r for r in rows if r["active"]), None)
-    if live is None:
+    if live is None or live.get("kind") == "provider":
         return rows
     head = snapshot.headline(limits.current(store, now))
     read_at = head.get("read_at")
@@ -215,8 +218,8 @@ def run_once(store, apply: bool = False, scan: bool = True, now: float | None = 
     rows = readings(store, now)
     fresh: set = set()
     allow = cfg.get("accounts")
-    pool = [r for r in rows if not allow or r["name"] in allow]
-    live = next((r for r in rows if r["active"]), None)
+    pool = [r for r in rows if r.get("kind") != "provider" and (not allow or r["name"] in allow)]
+    live = next((r for r in rows if r["active"] and r.get("kind") != "provider"), None)
     st = _state()
     if (cfg.get("refresh") and live and len(pool) >= 2 and hop.installed()
             and (_pct(live.get("short")) or 0) >= cfg["refresh_above"]

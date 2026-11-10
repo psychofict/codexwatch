@@ -197,9 +197,13 @@ def generate(home: str, days: int = 60, seed: int = 7, now: float | None = None)
     return {"sessions": len(sessions), "responses": w["responses"]}
 
 
-def demo_codexhop(store: str, now: float) -> None:
-    """Three invented codexhop accounts, so the multi-account views have something to show."""
+def demo_codexhop(store: str, now: float, home: str | None = None) -> None:
+    """Three invented codexhop accounts and one invented provider, so the multi-account views have something to show."""
     os.makedirs(os.path.join(store, "accounts"), exist_ok=True)
+    if home:
+        with open(os.path.join(home, "azure.config.toml"), "w", encoding="utf-8") as f:
+            f.write('model_provider = "azure"\nmodel = "gpt-5-codex"\n\n[model_providers.azure]\n'
+                    'base_url = "https://demo-foundry.openai.azure.com/openai/v1"\n')
     for name in ("work", "personal", "side"):
         with open(os.path.join(store, "accounts", f"{name}.json"), "w", encoding="utf-8") as f:
             f.write("{}")  # names only; a real account file holds a login, these hold nothing
@@ -228,7 +232,7 @@ def cmd_demo(a) -> int:
         shutil.rmtree(root, ignore_errors=True)
         os.makedirs(home, exist_ok=True)
         n = generate(home, days=getattr(a, "days", 60) or 60)
-        demo_codexhop(os.path.join(root, "codexhop"), time.time())
+        demo_codexhop(os.path.join(root, "codexhop"), time.time(), home)
         print(f"wrote {n['sessions']} invented sessions ({n['responses']:,} responses) to {home}")
     os.environ["CODEX_HOME"] = home
     os.environ["CODEXWATCH_DIR"] = os.path.join(root, "data")
