@@ -107,6 +107,7 @@ claude mcp add codexwatch -- codexwatch mcp    # Claude Code
 Then ask "how much of my 5-hour window is left?" or "what did this week cost?". The tools are `usage_summary`, `plan_limits`, `quota_forensics`, `sessions`, `daily` and `budget_status`. The server is in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.psychofict/codexwatch`.
 
 <a href="https://glama.ai/mcp/servers/psychofict/codexwatch"><img width="380" height="200" src="https://glama.ai/mcp/servers/psychofict/codexwatch/badge" alt="codexwatch MCP server on Glama"></a>
+<a href="https://mcprush.com/psychofict/codexwatch-mcp"><img width="380" height="200" src="https://mcprush.com/badge/codexwatch-mcp/card.svg" alt="codexwatch MCP server on mcprush"></a>
 
 <!-- mcp-name: io.github.psychofict/codexwatch -->
 
